@@ -18,7 +18,7 @@ func main() {
 	var w int
 	var rootDir string
 
-	headerH = 2
+	headerH = 4
 
 	if len(os.Args) == 1 {
 		log.Fatal("Please specify path, or .")
