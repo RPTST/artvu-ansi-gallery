@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/robbiew/artvu-ansi-gallery/internal/ansi"
 	"github.com/robbiew/artvu-ansi-gallery/internal/menu"
+	"github.com/robbiew/artvu-ansi-gallery/internal/theme"
 	"github.com/robbiew/artvu-ansi-gallery/pkg/term"
 )
 
@@ -37,6 +39,9 @@ func main() {
 
 	fmt.Println(ansi.Clear)
 	fmt.Println(ansi.Home)
+
+	theme.ShowSplash(w)
+	time.Sleep(2 * time.Second)
 
 	menu.MenuAction(rootDir, h, w, headerH, themeDir)
 }

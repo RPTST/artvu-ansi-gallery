@@ -14,8 +14,8 @@ func TruncateText(s string, max int) string {
 		r := 0
 		for i := range s {
 			r++
-			if r > max {
-				return s[:i]
+			if r > max-3 {
+				return s[:i] + "..."
 			}
 		}
 	}

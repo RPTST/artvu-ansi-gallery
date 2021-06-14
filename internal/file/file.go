@@ -39,34 +39,35 @@ func IsEmpty(name string) (bool, error) {
 	}
 	defer f.Close()
 
-	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	_, err = f.Readdirnames(1) // Or f.Readdir(1)s
 	if err == io.EOF {
 		return true, nil
 	}
 	return false, err // Either not empty or error, suits both cases
 }
 
-func GetDirInfo(selected string, rootDir string, currPath string) ([]string, []string, string) {
+func GetDirInfo(selected string, rootDir string, currPath string) ([]string, []string, string, int) {
 
+	var addNav bool
+	var cnt int
 	var p string
+	var d []string
+	var f []string
 
-	if selected != "." && currPath != selected {
-		p = currPath + "/" + selected
-	}
-	if selected == "../" {
-		p = currPath + "/.."
-
+	if currPath == rootDir {
+		addNav = false
 	} else {
-		p = currPath
+		addNav = true
 	}
 
-	var d []string = nil
-	var f []string = nil
+	if addNav == true {
+		d = append(d, "./", "../")
+	}
 
 	err := os.Chdir(selected)
+	newDir, err := os.Getwd()
+	p = newDir
 	check(err)
-
-	d = append(d, rootDir, "../")
 
 	c, err := ioutil.ReadDir(".")
 	check(err)
@@ -86,5 +87,8 @@ func GetDirInfo(selected string, rootDir string, currPath string) ([]string, []s
 			}
 		}
 	}
-	return d, f, p
+
+	cnt = len(d) + len(f)
+
+	return d, f, p, cnt
 }

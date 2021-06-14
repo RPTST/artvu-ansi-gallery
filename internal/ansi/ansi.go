@@ -88,6 +88,17 @@ func GetSauce(filename string) ([35]byte, [20]byte, [20]byte, [8]byte, uint16, u
 	return title, author, group, date, tinfo1, tinfo2
 }
 
+func ShowArt(text string) {
+
+	// trim the text if it's after a SAUCE RECORD
+
+	noSauce := TrimStringFromSauce(string(text))
+	var r io.Reader = strings.NewReader(noSauce)
+
+	io.Copy(os.Stdout, r)
+}
+
+//
 // WriteAnsi(string) dislays a full CP437 ansi art file
 func WriteAnsi(selected string) {
 	content, err := ioutil.ReadFile(selected)
@@ -127,17 +138,6 @@ func WriteAnsi(selected string) {
 		// ShowDirs(subDirs, subFiles)
 		// Bottom(selected, h)
 	}
-}
-
-func Top(dp string, abs string) {
-	fmt.Fprintf(os.Stdout, escapes.CursorPos(0, 0))
-	fmt.Fprintf(os.Stdout, BrightWhite+"ArtVu Local Ansi Browser\n"+Reset)
-	fmt.Fprintf(os.Stdout, Yellow+"Location: %v                             "+Reset, abs)
-}
-
-func Bottom(selected string, action int, h int, currentDir int) {
-	fmt.Fprintf(os.Stdout, escapes.CursorPos(0, h))
-	fmt.Fprintf(os.Stdout, "Footer - Selected: %v, Action: %v, CurrentDir: %v", selected, action, currentDir)
 }
 
 func TrimLastChar(s string) string {
