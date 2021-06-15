@@ -13,7 +13,6 @@ import (
 
 type Config struct {
 	HeaderHeight int
-	ThemeDir     string
 	ArtDir       string
 }
 
@@ -32,7 +31,6 @@ func main() {
 
 	headerH := conf.HeaderHeight
 	rootDir := conf.ArtDir
-	themeDir := conf.ThemeDir
 
 	// Try and detect the user's term size
 	h, w = term.GetTermSize()
@@ -43,5 +41,5 @@ func main() {
 	theme.ShowSplash(w)
 	time.Sleep(2 * time.Second)
 
-	menu.MenuAction(rootDir, h, w, headerH, themeDir)
+	menu.MenuAction(rootDir, h, w, headerH)
 }
