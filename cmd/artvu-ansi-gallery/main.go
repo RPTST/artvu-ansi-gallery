@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/robbiew/artvu-ansi-gallery/internal/ansi"
 	"github.com/robbiew/artvu-ansi-gallery/internal/menu"
 	"github.com/robbiew/artvu-ansi-gallery/internal/theme"
 	"github.com/robbiew/artvu-ansi-gallery/pkg/term"
@@ -35,8 +34,8 @@ func main() {
 	// Try and detect the user's term size
 	h, w = term.GetTermSize()
 
-	fmt.Println(ansi.Clear)
-	fmt.Println(ansi.Home)
+	fmt.Println(theme.Clear)
+	fmt.Println(theme.Home)
 
 	theme.ShowSplash(w)
 	time.Sleep(2 * time.Second)
