@@ -40,5 +40,5 @@ func main() {
 	theme.ShowSplash(w)
 	time.Sleep(2 * time.Second)
 
-	menu.MenuAction(rootDir, h, w, headerH)
+	menu.MenuAction(rootDir, h-1, w, headerH)
 }
