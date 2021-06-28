@@ -1,38 +1,39 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/robbiew/artvu-ansi-gallery/internal/menu"
 	"github.com/robbiew/artvu-ansi-gallery/internal/theme"
 	"github.com/robbiew/artvu-ansi-gallery/pkg/term"
 )
 
-type Config struct {
-	HeaderHeight int
-	ArtDir       string
-}
-
 func main() {
+	rootPtr := flag.String("root", "/foo/bar", "path to art folder")
 
-	var h int
-	var w int
+	required := []string{"root"}
+	flag.Parse()
 
-	var conf Config
-	if _, err := toml.DecodeFile("/robbiew/artvu-ansi-gallery/cfg/config.toml", &conf); err != nil {
-		// handle error
-		if err != nil {
-			panic(err)
+	seen := make(map[string]bool)
+	flag.Visit(func(f *flag.Flag) { seen[f.Name] = true })
+	for _, req := range required {
+		if !seen[req] {
+			// or possibly use `log.Fatalf` instead of:
+			fmt.Fprintf(os.Stderr, "missing required -%s argument/flag\n", req)
+			os.Exit(2) // the same exit code flag.Parse uses
 		}
 	}
 
-	headerH := conf.HeaderHeight
-	rootDir := conf.ArtDir
+	flag.Parse()
+
+	headerH := 5
+	rootDir := *rootPtr
 
 	// Try and detect the user's term size
-	h, w = term.GetTermSize()
+	h, w := term.GetTermSize()
 
 	fmt.Println(theme.Clear)
 	fmt.Println(theme.Home)
@@ -40,5 +41,5 @@ func main() {
 	theme.ShowSplash(w)
 	time.Sleep(2 * time.Second)
 
-	menu.MenuAction(rootDir, h-1, w, headerH)
+	menu.MenuAction(rootDir, h, w, headerH)
 }
