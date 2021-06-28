@@ -1,4 +1,0 @@
-# Configuration file, these are required
-HeaderHeight = 2 # this should be height of header ansi + 1
-ThemeDir = "/robbiew/artvu-ansi-gallery/assets/"
-ArtDir = "/home/robbiew/art"

@@ -3,7 +3,6 @@ package file
 import (
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,10 +48,10 @@ func IsEmpty(name string) (bool, error) {
 func GetDirInfo(selected string, rootDir string, currPath string) ([]string, []string, string, int) {
 
 	var addNav bool
-	var cnt int
-	var p string
-	var d []string
-	var f []string
+	var cnt int    // total count of slice
+	var p string   // selected dir or file
+	var d []string // dir slice
+	var f []string // file slice
 
 	if currPath == rootDir {
 		addNav = false
@@ -61,7 +60,7 @@ func GetDirInfo(selected string, rootDir string, currPath string) ([]string, []s
 	}
 
 	if addNav == true {
-		d = append(d, "./", "../")
+		d = append(d, "../")
 	}
 
 	err := os.Chdir(selected)
@@ -74,21 +73,13 @@ func GetDirInfo(selected string, rootDir string, currPath string) ([]string, []s
 
 	for _, entry := range c {
 		if entry.IsDir() {
-			y, err := IsEmpty(entry.Name())
-			if err != nil {
-				log.Fatal(err)
-			}
-			if y == false {
-				d = append(d, entry.Name())
-			}
+			d = append(d, entry.Name())
 		} else {
-			if strings.ToLower(filepath.Ext(entry.Name())) == ".ans" || strings.ToLower(filepath.Ext(entry.Name())) == ".asc" || strings.ToLower(filepath.Ext(entry.Name())) == ".diz" {
+			if strings.ToLower(filepath.Ext(entry.Name())) == ".ans" || strings.ToLower(filepath.Ext(entry.Name())) == ".asc" {
 				f = append(f, entry.Name())
 			}
 		}
 	}
-
 	cnt = len(d) + len(f)
-
 	return d, f, p, cnt
 }

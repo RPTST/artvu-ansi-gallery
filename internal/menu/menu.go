@@ -1,15 +1,15 @@
 package menu
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/eiannone/keyboard"
-	"github.com/robbiew/artvu-ansi-gallery/internal/ansi"
 	"github.com/robbiew/artvu-ansi-gallery/internal/debugr"
 	"github.com/robbiew/artvu-ansi-gallery/internal/file"
-	"github.com/robbiew/artvu-ansi-gallery/internal/showfile"
+	"github.com/robbiew/artvu-ansi-gallery/internal/show"
 	"github.com/robbiew/artvu-ansi-gallery/internal/theme"
 	escapes "github.com/snugfox/ansi-escapes"
 )
@@ -18,12 +18,25 @@ var (
 	debug bool
 )
 
+//go:embed ansiFooter.80.ans
+var f80 string
+
+//go:embed ansiFooter.132.ans
+var f132 string
+
+//go:embed quit.80.ans
+var q80 string
+
+//go:embed quit.132.ans
+var q132 string
+
 type CurrentFile struct {
 	CurrentDir    int
 	Selected      string
 	Action        int
 	VisibleDirIdx int
 	CurrentPath   string
+	ViewAnsi      bool
 }
 
 type DirsFiles struct {
@@ -32,14 +45,14 @@ type DirsFiles struct {
 	Count       int
 }
 
-func MenuAction(rootDir string, h int, w int, headerH int, themeDir string) {
+func MenuAction(rootDir string, h int, w int, headerH int) {
 
 	debug = false
 
 	var navOn bool
 
-	fmt.Println(ansi.Clear)
-	fmt.Println(ansi.Home)
+	fmt.Println(theme.Clear)
+	fmt.Println(theme.Home)
 
 	f := CurrentFile{}
 	p := &f
@@ -52,12 +65,13 @@ func MenuAction(rootDir string, h int, w int, headerH int, themeDir string) {
 	p.CurrentDir = 0
 	p.Selected = rootDir
 	p.CurrentPath = rootDir
+	p.ViewAnsi = true
+
+	theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+	theme.ShowFooter(w, h, p.ViewAnsi)
 
 	p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(p.Selected, rootDir, p.CurrentPath)
-	p.CurrentDir, p.Selected, p.Action = showfile.Show(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w)
-
-	theme.ShowHeader(w, headerH, p.CurrentPath, rootDir, themeDir)
-	theme.ShowFooter(w, h)
+	p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 	if debug == true {
 		debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
@@ -81,107 +95,186 @@ func MenuAction(rootDir string, h int, w int, headerH int, themeDir string) {
 		if key == keyboard.KeyEnter {
 
 			p.VisibleDirIdx = 0
-			if p.Action == 0 { // go to sub directory name
-				if p.VisibleDirIdx <= p1.Count-3 && p.CurrentDir <= p1.Count-3 {
+			switch p.Action {
 
-					p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(p.Selected, rootDir, p.CurrentPath)
-					p.CurrentDir, p.Selected, p.Action = showfile.Show(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w)
+			case 0: // open directory
+
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(p.Selected, rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
+
+				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+
+				if p1.Count <= 1 {
+					p.CurrentDir--
 				}
-				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir, themeDir)
-				theme.ShowFooter(w, h)
 
-				if debug == true {
-					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
-				}
-			}
-
-			if p.Action == 1 { // return to main root dir
-				fmt.Println(ansi.Clear)
-				fmt.Println(ansi.Home)
-				if p.VisibleDirIdx <= p1.Count-3 && p.CurrentDir <= p1.Count-3 {
-
-					p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(rootDir, rootDir, p.CurrentPath)
-					p.CurrentDir, p.Selected, p.Action = showfile.Show(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w)
-				}
-				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir, themeDir)
-				theme.ShowFooter(w, h)
-
-				if debug == true {
-					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
-				}
-			}
-
-			if p.Action == 2 { // back one dir
-				fmt.Println(ansi.Clear)
-				fmt.Println(ansi.Home)
-				if p.VisibleDirIdx <= p1.Count-3 && p.CurrentDir <= p1.Count-3 {
-
-					p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo("../", rootDir, p.CurrentPath)
-					p.CurrentDir, p.Selected, p.Action = showfile.Show(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w)
-				}
-				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir, themeDir)
-				theme.ShowFooter(w, h)
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				theme.ShowFooter(w, h, p.ViewAnsi)
 
 				if debug == true {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
 
-			}
+			case 1: // view ansi
 
-			if p.Action == 3 { // display selected ansi
-				fmt.Println(ansi.Clear)
-				fmt.Println(ansi.Home)
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
 
-				if p.VisibleDirIdx <= p1.Count-3 && p.CurrentDir <= p1.Count-3 {
-					// ansi.WriteAnsi(p.Selected)
-				}
+				theme.WriteAnsi(p.CurrentPath+"/"+p.Selected, h, w, headerH, p.CurrentPath, rootDir)
 
 				if debug == true {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
 
-			} else {
-				fmt.Println(ansi.Clear)
-				fmt.Println(ansi.Home)
+				fmt.Fprintf(os.Stdout, "\n"+escapes.CursorPos(0, h))
 
-				if p.VisibleDirIdx <= p1.Count-3 && p.CurrentDir <= p1.Count-3 {
-
-					p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-					p.CurrentDir, p.Selected, p.Action = showfile.Show(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w)
-
+				if w <= 80 {
+					theme.ShowArt(f80)
+				} else {
+					theme.ShowArt(f132)
 				}
-				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir, themeDir)
-				theme.ShowFooter(w, h)
 
+				for {
+
+					char, key, err := keyboard.GetKey()
+					if err != nil {
+						panic(err)
+					}
+
+					if string(char) == "q" || string(char) == "Q" || key == keyboard.KeyEsc {
+						fmt.Fprintf(os.Stdout, "\033[2J") //clear screen
+						theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+						theme.ShowFooter(w, h, p.ViewAnsi)
+						break
+					}
+
+					if key == keyboard.KeyArrowUp {
+
+					}
+
+					if key == keyboard.KeyArrowDown {
+
+					}
+
+					if string(char) == "r" || string(char) == "R" {
+						fmt.Println(theme.Clear)
+						fmt.Println(theme.Home)
+
+						theme.WriteAnsi(p.CurrentPath+"/"+p.Selected, h, w, headerH, p.CurrentPath, rootDir)
+
+						if debug == true {
+							debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
+						}
+
+						fmt.Fprintf(os.Stdout, "\n"+escapes.CursorPos(0, h))
+
+						if w <= 80 {
+							theme.ShowArt(f80)
+						} else {
+							theme.ShowArt(f132)
+						}
+
+					}
+				}
+
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
+
+				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				theme.ShowFooter(w, h, p.ViewAnsi)
+
+			case 2: // up one dir
+
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo("../", rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
+
+				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+
+				theme.ShowFooter(w, h, p.ViewAnsi)
 				if debug == true {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
+
+			case 3: // don't anything, art is too wide
+
 			}
 		}
 
 		if key == keyboard.KeyEsc || string(char) == "q" || string(char) == "Q" {
-			fmt.Println(ansi.Clear)
-			fmt.Println(ansi.Home)
-			fmt.Println(escapes.CursorShow)
+			fmt.Println(theme.Clear)
+			fmt.Println(theme.Home)
 
-			cmd := exec.Command("reset") //Linux only
-			cmd.Stdout = os.Stdout
-			fmt.Println("Thanks for using ArtVu!!")
-			cmd.Run()
-			os.Exit(0)
+			fmt.Fprintf(os.Stdout, escapes.CursorPos(0, 0))
+
+			if w <= 80 {
+				theme.ShowArt(q80)
+			} else {
+				theme.ShowArt(q132)
+			}
+
+			char, key, err := keyboard.GetKey()
+			if err != nil {
+				panic(err)
+			}
+
+			if string(char) == "y" || string(char) == "Y" || key == keyboard.KeyEsc {
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
+				fmt.Println(escapes.CursorShow)
+
+				cmd := exec.Command("reset") //Linux only
+				cmd.Stdout = os.Stdout
+				cmd.Run()
+				os.Exit(0)
+
+			} else {
+
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
+
+				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+
+				theme.ShowFooter(w, h, p.ViewAnsi)
+				if debug == true {
+					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
+				}
+
+			}
+
 		}
 
 		if key == keyboard.KeyArrowDown { //down arrow
 
-			if p.VisibleDirIdx <= p1.Count-3 && p.CurrentDir <= p1.Count-2 {
+			if p.VisibleDirIdx <= p1.Count && p.CurrentDir <= p1.Count-2 {
 				p.CurrentDir++
 				if p.CurrentDir > p.VisibleDirIdx+(h-(headerH+2)) {
 					p.VisibleDirIdx++
 				}
 
-				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action = showfile.Show(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w)
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
 
+				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				theme.ShowFooter(w, h, p.ViewAnsi)
 				if debug == true {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
@@ -196,8 +289,15 @@ func MenuAction(rootDir string, h int, w int, headerH int, themeDir string) {
 					p.VisibleDirIdx--
 				}
 
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
+
+				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action = showfile.Show(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+
+				theme.ShowFooter(w, h, p.ViewAnsi)
 
 				if debug == true {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
