@@ -16,6 +16,7 @@ Build like any go program. Or, use a pre-built binary from the /release folder.
 ## TO-DO ##
 - [ ] Create a single object holding directory and file data - Refactor directory/file scanning to create a single go struct of the entire directory tree that can hold metadata, like SAUCE data (right now it scans only the "active" directory and creates 2 simple slices holding the directory and file names). This will allow for more granular sorting and filtering.
 - [ ] Add "Preview" data panel for terms wider than 80 cols
-- [ ] Reduce flicker - Refactor lightbar function to *only* re-draw the entire list if scrolling beyond the terminal height. Otherwise, handle only affected rows.
+- [ ] Reduce flicker in dir list - Refactor lightbar function to *only* re-draw the entire list if scrolling beyond the terminal height. Otherwise, handle only affected rows.
 - [ ] Allow users to manually scroll up/down in ANSI
 - [ ] Add "-local" command line flag to allow users to browse locally - needs to handle/print ANSI differently
+- [ ] Add Windows compatibility
