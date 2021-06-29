@@ -77,7 +77,7 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 					fmt.Println(up + spos + theme.BgCyan + textutil.PadLeft(">", " ", wSize+1))
 					fmt.Println(up + spos + theme.White + " " + textutil.TruncateText("-", wSize))
 
-				case file.IsDirectory(v) == true && v != rootDir: // enter directory
+				case file.IsDirectory(v) && v != rootDir: // we've entered a directory
 
 					viewAnsi = true
 					selected = v
@@ -95,10 +95,10 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 					fmt.Println(up + spos + theme.BgCyan + textutil.PadLeft(">", " ", wSize+1))
 					fmt.Println(up + spos + theme.White + " " + textutil.TruncateText("-", wSize))
 
-				case file.IsDirectory(v) == false && v != "../":
+				case !file.IsDirectory(v) && v != "../":
 
 					selected = v
-					action = 1 // view ansi file
+					action = 1 // viewing ansi file
 
 					fmt.Println(theme.BgCyan + textutil.PadLeft(">", " ", wName))
 					fmt.Println(up + theme.BrightWhite + " " + textutil.TruncateText(v, wName-2))
@@ -114,7 +114,7 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 
 					// SUACE records
 					n := currentPath + "/" + v
-					if sauce.CheckSauce(n) == true {
+					if sauce.CheckSauce(n) {
 
 						record := sauce.GetSauce(n)
 						s.Author = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Author)[:]))
@@ -139,8 +139,25 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 						fmt.Println(up + apos + theme.BgCyan + textutil.PadLeft(">", " ", wAuthor))
 						fmt.Println(up + apos + theme.White + " " + textutil.TruncateText(s.Author, wAuthor-2))
 
-						fmt.Println(up + spos + theme.BgCyan + textutil.PadLeft(">", " ", wSize+1))
-						fmt.Println(up + spos + widthColor + " " + textutil.TruncateText(s.Tinfo1+"x"+s.Tinfo2, wSize))
+						if len(strings.TrimSpace(s.Tinfo1)) > 1 {
+
+							fmt.Println(up + spos + theme.BgCyan + textutil.PadLeft(">", " ", wSize+1))
+							fmt.Println(up + spos + widthColor + " " + textutil.TruncateText(s.Tinfo1+"x"+s.Tinfo2, wSize))
+						}
+
+					} else {
+
+						viewAnsi = true
+
+						fmt.Println(up + apos + textutil.PadLeft(">", " ", wAuthor))
+						fmt.Println(up + apos + theme.White + " -")
+
+						fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
+						fmt.Println(up + spos + " -")
+
+						fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
+						fmt.Println(up + spos + " -")
+
 					}
 					fmt.Fprintf(os.Stdout, theme.Reset)
 
@@ -163,7 +180,7 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 					fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
 					fmt.Println(up + spos + theme.White + " " + textutil.TruncateText("-", wSize))
 
-				case file.IsDirectory(v) == true && v != rootDir:
+				case file.IsDirectory(v) && v != rootDir:
 
 					fmt.Println(theme.Cyan + textutil.PadLeft(">", " ", wName))
 					fmt.Println(up + theme.Cyan + " " + theme.Green + showrune.ArrowRight + " " + theme.Cyan + textutil.TruncateText(v, wName-2))
@@ -177,7 +194,7 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 					fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
 					fmt.Println(up + spos + theme.White + " " + textutil.TruncateText("-", wSize))
 
-				case file.IsDirectory(v) == false:
+				case !file.IsDirectory(v):
 
 					fmt.Println(theme.Cyan + textutil.PadLeft(">", " ", wName))
 					fmt.Println(up + theme.White + " " + textutil.TruncateText(v, wName-2))
@@ -188,11 +205,11 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 					// SUACE records
 
 					n := currentPath + "/" + v
-					if sauce.CheckSauce(n) == true {
+					if sauce.CheckSauce(n) {
 						record := sauce.GetSauce(n)
 						s.Author = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Author)[:]))
-						s.Tinfo1 = strings.TrimSpace(string(fmt.Sprintf("%s", strconv.Itoa(int(record.Sauceinf.Tinfo1))[:])))
-						s.Tinfo2 = strings.TrimSpace(string(fmt.Sprintf("%s", strconv.Itoa(int(record.Sauceinf.Tinfo2))[:])))
+						s.Tinfo1 = strings.TrimSpace(string(strconv.Itoa(int(record.Sauceinf.Tinfo1))[:]))
+						s.Tinfo2 = strings.TrimSpace(string(strconv.Itoa(int(record.Sauceinf.Tinfo2))[:]))
 
 						sInt, err := strconv.Atoi(s.Tinfo1)
 						if err != nil {
@@ -201,17 +218,31 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 						var widthColor string
 						if sInt > w {
 							widthColor = theme.BrightRed
-
 						} else {
 							widthColor = theme.White
-
 						}
 
 						fmt.Println(up + apos + textutil.PadLeft(">", " ", wAuthor))
 						fmt.Println(up + apos + theme.White + " " + textutil.TruncateText(s.Author, wAuthor-2))
 
+						if len(strings.TrimSpace(s.Tinfo1)) < 2 {
+							fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
+							fmt.Println(up + spos + widthColor + " -")
+						} else {
+							fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
+							fmt.Println(up + spos + widthColor + " " + textutil.TruncateText(s.Tinfo1+"x"+s.Tinfo2, wSize))
+						}
+					} else {
+
+						fmt.Println(up + apos + textutil.PadLeft(">", " ", wAuthor))
+						fmt.Println(up + apos + theme.White + " -")
+
 						fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
-						fmt.Println(up + spos + widthColor + " " + textutil.TruncateText(s.Tinfo1+"x"+s.Tinfo2, wSize))
+						fmt.Println(up + spos + " -")
+
+						fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
+						fmt.Println(up + spos + " -")
+
 					}
 				}
 				fmt.Fprintf(os.Stdout, theme.Reset)
@@ -223,69 +254,6 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 	fmt.Fprintf(os.Stdout, theme.Reset)
 
 	return currentDir, selected, action, viewAnsi
-}
-
-func showSauce() {
-
-	// n := currentPath + "/" + v + "/"
-
-	// if w > 80 {
-	// 	if hasDiz(n) == true {
-	// 		fmt.Fprintf(os.Stdout, "\033[s")
-	// 		showDiz(currentPath, v, w-45, headerH+1, h)
-	// 		fmt.Fprintf(os.Stdout, "\033[u")
-	// 	}
-	// }
-	// var tpos string
-	// var apos string
-
-	// Suace X positions
-	// tpos = "\033[" + fmt.Sprint(wName) + "C"                // title
-	// apos = "\033[" + fmt.Sprint(wTitle+wName) + "C"         // author
-
-	// wGroup := 60
-	// wDimen := 67
-	// wDate := 73
-
-	// Suace X positions
-	// tpos = "\033[" + fmt.Sprint(wName) + "C"                // title
-	// apos = "\033[" + fmt.Sprint(wTitle+wName) + "C"         // author
-
-	// action = 1 // view ansi
-	// selected = v
-	// n := currentPath + "/" + v
-	// if sauce.CheckSauce(n) == true {
-	// 	record := sauce.GetSauce(n)
-	// 	s.Title = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Title)[:]))
-	// 	s.Author = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Author)[:]))
-	// 	// s.Group = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Group)[:]))
-	// 	// s.Date = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Date)[:]))
-	// 	s.Tinfo1 = strings.TrimSpace(string(fmt.Sprintf("%s", strconv.Itoa(int(record.Sauceinf.Tinfo1))[:])))
-	// 	s.Tinfo2 = strings.TrimSpace(string(fmt.Sprintf("%s", strconv.Itoa(int(record.Sauceinf.Tinfo2))[:])))
-	// } else {
-	// 	s.Title = "none"
-	// }
-
-	// SAUCE metadata columns
-	// fmt.Println(tpos + up + theme.BgCyan + textutil.PadLeft(">", " ", wTitle) + theme.Reset)
-	// fmt.Println(tpos + up + theme.BgCyan + theme.BrightWhite + " " + textutil.TruncateText(s.Title, wTitle-2) + theme.Reset)
-
-	// fmt.Println(apos + up + theme.BgCyan + textutil.PadLeft(">", " ", wAuthor) + theme.Reset)
-	// fmt.Println(apos + up + theme.BgCyan + theme.BrightWhite + " " + textutil.TruncateText(s.Author, wAuthor-2) + theme.Reset)
-
-	// fmt.Println(wpos + up + theme.BgCyan + textutil.PadLeft(">", " ", wSize) + theme.Reset)
-	// fmt.Println(wpos + up + theme.BgCyan + theme.BrightWhite + " " + textutil.TruncateText(s.Tinfo1+"x"+s.Tinfo2, wSize) + theme.Reset)
-
-	// // SAUCE metadata columns
-	// fmt.Println(up + tpos + theme.Cyan + textutil.PadLeft(">", " ", wTitle) + theme.Reset)
-	// fmt.Println(up + tpos + theme.White + " " + textutil.TruncateText(s.Title, wTitle-2) + theme.Reset)
-
-	// fmt.Println(up + apos + theme.Cyan + textutil.PadLeft(">", " ", wAuthor) + theme.Reset)
-	// fmt.Println(up + apos + theme.White + " " + textutil.TruncateText(s.Author, wAuthor-2) + theme.Reset)
-
-	// fmt.Println(up + wpos + theme.Cyan + textutil.PadLeft(">", " ", wSize) + theme.Reset)
-	// fmt.Println(up + wpos + theme.White + " " + textutil.TruncateText(s.Tinfo1+"x"+s.Tinfo2, wSize) + theme.Reset)
-
 }
 
 func hasExts(path string, exts []string) bool {

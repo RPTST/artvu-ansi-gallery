@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/eiannone/keyboard"
 	"github.com/robbiew/artvu-ansi-gallery/internal/debugr"
@@ -29,6 +28,12 @@ var q80 string
 
 //go:embed quit.132.ans
 var q132 string
+
+//go:embed logoff.80.ans
+var l80 string
+
+//go:embed logoff.132.ans
+var l132 string
 
 type CurrentFile struct {
 	CurrentDir    int
@@ -73,7 +78,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 	p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(p.Selected, rootDir, p.CurrentPath)
 	p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
-	if debug == true {
+	if debug {
 		debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 	}
 
@@ -105,17 +110,18 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				fmt.Println(theme.Clear)
 				fmt.Println(theme.Home)
 
-				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
-
 				if p1.Count <= 1 {
-					p.CurrentDir--
+					p.CurrentDir = 1
+					p.VisibleDirIdx = 0
 				}
+
+				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+				theme.ShowFooter(w, h, p.ViewAnsi)
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
 				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
-				theme.ShowFooter(w, h, p.ViewAnsi)
 
-				if debug == true {
+				if debug {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
 
@@ -126,7 +132,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 
 				theme.WriteAnsi(p.CurrentPath+"/"+p.Selected, h, w, headerH, p.CurrentPath, rootDir)
 
-				if debug == true {
+				if debug {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
 
@@ -152,21 +158,13 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 						break
 					}
 
-					if key == keyboard.KeyArrowUp {
-
-					}
-
-					if key == keyboard.KeyArrowDown {
-
-					}
-
 					if string(char) == "r" || string(char) == "R" {
 						fmt.Println(theme.Clear)
 						fmt.Println(theme.Home)
 
 						theme.WriteAnsi(p.CurrentPath+"/"+p.Selected, h, w, headerH, p.CurrentPath, rootDir)
 
-						if debug == true {
+						if debug {
 							debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 						}
 
@@ -204,7 +202,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 				theme.ShowFooter(w, h, p.ViewAnsi)
-				if debug == true {
+				if debug {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
 
@@ -217,7 +215,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 			fmt.Println(theme.Clear)
 			fmt.Println(theme.Home)
 
-			fmt.Fprintf(os.Stdout, escapes.CursorPos(0, 0))
+			// fmt.Println(escapes.CursorPos(0, 0))
 
 			if w <= 80 {
 				theme.ShowArt(q80)
@@ -234,10 +232,15 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				fmt.Println(theme.Clear)
 				fmt.Println(theme.Home)
 				fmt.Println(escapes.CursorShow)
+				if w <= 80 {
+					theme.ShowArt(l80)
+				} else {
+					theme.ShowArt(l132)
+				}
 
-				cmd := exec.Command("reset") //Linux only
-				cmd.Stdout = os.Stdout
-				cmd.Run()
+				// cmd := exec.Command("reset") //Linux only
+				// cmd.Stdout = os.Stdout
+				// cmd.Run()
 				os.Exit(0)
 
 			} else {
@@ -251,7 +254,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 				theme.ShowFooter(w, h, p.ViewAnsi)
-				if debug == true {
+				if debug {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
 
@@ -275,7 +278,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
 				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 				theme.ShowFooter(w, h, p.ViewAnsi)
-				if debug == true {
+				if debug {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
 			}
@@ -299,7 +302,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 
 				theme.ShowFooter(w, h, p.ViewAnsi)
 
-				if debug == true {
+				if debug {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
 				}
 			}
