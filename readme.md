@@ -25,12 +25,5 @@ Build ArtVu like any Go program. Or, use a pre-built binary from the /release fo
 - There's some degree of flicker when using the lighbar, see TO-DO below...
 
 ## TO-DO ##
-- [ ] Create a single object (struct) that contains directory/file hierarchy and SAUCE metadata - right now it scans only the "active" directory and creates 2 simple slices holding the contents, one for files and the other for directories. Refactoring to a single object will allow for more granular displaying, sorting and filtering
-- [ ] "Preview" data panel for terms wider than 80 cols (blank/placeholder for now)
-- [ ] Reduce lightbar flicker in list - *only* re-draw the list if scrolling outside the terminal height. Otherwise, just handle the affected rows
-- [ ] Allow users to manually scroll up/down in ANSI art
-- [ ] "-local" command line flag to allow users to browse locally - but needs to handle/print ANSI differently
-- [ ] Windows (port) compatibility
-- [ ] support for PgUp and PgDn keys/functions
-- [ ] configurable write delay (hard coded right now)
-- [ ] time out users after X mins of inactivity
+
+See issues list for enhancements.
