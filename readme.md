@@ -7,7 +7,7 @@ Required command-line flag is "-root" followed by the path to the folder contain
 
 Everything under this root will be viewable by users, so be aware.
 
-Artvu scans for files and folders under the root and turns each directory into a listing that can be navigated via lightbar interface over telnet/ssh connection (stdout) using a terminal program like SyncTerm, MagiTerm or NetRunner. 
+Artvu scans for files and folders that contain *.ans, *.asc or *.diz files under the root and turns each directory that contains those files into a listing tree that can be navigated via a lightbar over telnet/ssh connection (stdout) using a terminal program like SyncTerm, MagiTerm or NetRunner. 
 
 It incorporates SAUCE metadata into the file listings. 
 
