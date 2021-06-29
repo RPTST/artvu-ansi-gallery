@@ -12,8 +12,14 @@ import (
 )
 
 func main() {
-	rootPtr := flag.String("root", "/foo/bar", "path to art folder")
 
+	var h int
+	var w int
+
+	// Try and detect the user's term size
+	h, w = term.GetTermSize()
+
+	rootPtr := flag.String("root", "/foo/bar", "path to art folder")
 	required := []string{"root"}
 	flag.Parse()
 
@@ -32,14 +38,11 @@ func main() {
 	headerH := 5
 	rootDir := *rootPtr
 
-	// Try and detect the user's term size
-	h, w := term.GetTermSize()
-
 	fmt.Println(theme.Clear)
 	fmt.Println(theme.Home)
 
 	theme.ShowSplash(w)
 	time.Sleep(2 * time.Second)
 
-	menu.MenuAction(rootDir, h, w, headerH)
+	menu.MenuAction(rootDir, h-1, w, headerH)
 }
