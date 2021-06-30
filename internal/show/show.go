@@ -172,10 +172,8 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 
 						fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
 						fmt.Println(up + spos + " -")
-
 					}
 					fmt.Fprintf(os.Stdout, theme.Reset)
-
 				}
 
 			case i != currentDir:

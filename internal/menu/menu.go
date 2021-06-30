@@ -113,6 +113,10 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				if p1.Count <= 1 {
 					p.CurrentDir = 1
 					p.VisibleDirIdx = 0
+				} else {
+					p.CurrentDir = 1
+					p.VisibleDirIdx = 0
+
 				}
 
 				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
