@@ -5,4 +5,3 @@ cd /home/robbiew/go/src/github.com/robbiew/artvu-ansi-gallery/cmd/artvu-ansi-gal
 export TERM=xterm
 
 ./artvu-ansi-gallery -root /home/robbiew/art 
-git pull
