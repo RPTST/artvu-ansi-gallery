@@ -24,6 +24,8 @@ Build ArtVu like any Go program. Or, use a pre-built binary from the /release fo
 
 - There's some degree of flicker when using the lighbar, see TO-DO below...
 
+- if file_id.diz is wider than 45 characters (per spec), it'll break the display 
+
 ## TO-DO ##
 
 See issues list for enhancements.
