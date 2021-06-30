@@ -2,6 +2,6 @@
 
 cd /home/robbiew/go/src/github.com/robbiew/artvu-ansi-gallery/cmd/artvu-ansi-gallery
 
-export TERM=xterm-256color
+export TERM=xterm
 
 ./artvu-ansi-gallery -root /home/robbiew/art 

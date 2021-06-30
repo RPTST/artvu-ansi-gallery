@@ -94,7 +94,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 
 		char, key, err := keyboard.GetKey()
 		if err != nil {
-			panic(err)
+
 		}
 
 		if key == keyboard.KeyEnter {
@@ -211,7 +211,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 			}
 		}
 
-		if key == keyboard.KeyEsc || string(char) == "q" || string(char) == "Q" {
+		if string(char) == "q" || string(char) == "Q" {
 			fmt.Println(theme.Clear)
 			fmt.Println(theme.Home)
 
