@@ -4,11 +4,8 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"os"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/robbiew/artvu-ansi-gallery/pkg/sauce"
@@ -110,23 +107,6 @@ func ShowArt(text string) {
 	var r io.Reader = strings.NewReader(noSauce)
 
 	io.Copy(os.Stdout, r)
-}
-
-// WriteAnsi(string) dislays a full CP437 ansi art file
-func WriteAnsi(selected string, w int, h int, headerH int, currentPath string, rootDir string) {
-
-	content, err := ioutil.ReadFile(selected)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	noSauce := TrimStringFromSauce(string(content))
-
-	for _, line := range strings.Split(strings.TrimSuffix(noSauce, "\n"), "\n") {
-		time.Sleep(60 * time.Millisecond)
-		fmt.Println(line)
-	}
-
 }
 
 func TrimLastChar(s string) string {

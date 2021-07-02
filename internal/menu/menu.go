@@ -1,9 +1,15 @@
 package menu
 
 import (
+	"bufio"
+	"bytes"
 	_ "embed"
 	"fmt"
+	"log"
+	"math"
 	"os"
+	"os/exec"
+	"time"
 
 	"github.com/eiannone/keyboard"
 	"github.com/robbiew/artvu-ansi-gallery/internal/debugr"
@@ -14,7 +20,9 @@ import (
 )
 
 var (
-	debug bool
+	debug    bool
+	rowCount int
+	currLoc  int
 )
 
 //go:embed ansiFooter.80.ans
@@ -34,6 +42,9 @@ var l80 string
 
 //go:embed logoff.132.ans
 var l132 string
+
+//go:embed block.ans
+var block string
 
 type CurrentFile struct {
 	CurrentDir    int
@@ -134,7 +145,10 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				fmt.Println(theme.Clear)
 				fmt.Println(theme.Home)
 
-				theme.WriteAnsi(p.CurrentPath+"/"+p.Selected, h, w, headerH, p.CurrentPath, rootDir)
+				rowCount = 0
+
+				WriteAnsi(p.CurrentPath+"/"+p.Selected, h, w)
+				fmt.Println(" ")
 
 				if debug {
 					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
@@ -147,6 +161,23 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				} else {
 					theme.ShowArt(f132)
 				}
+
+				fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+				fmt.Fprintf(os.Stdout, theme.BgCyan+theme.BrightYellow+"[          ]"+theme.Reset)
+
+				fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+				theme.ShowArt(block)
+
+				fmt.Fprintf(os.Stdout, theme.Reset)
 
 				for {
 
@@ -166,7 +197,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 						fmt.Println(theme.Clear)
 						fmt.Println(theme.Home)
 
-						theme.WriteAnsi(p.CurrentPath+"/"+p.Selected, h, w, headerH, p.CurrentPath, rootDir)
+						WriteAnsi(p.CurrentPath+"/"+p.Selected, h, w)
 
 						if debug {
 							debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
@@ -180,6 +211,31 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 							theme.ShowArt(f132)
 						}
 
+					}
+
+					if key == keyboard.KeyArrowUp {
+						ScrollAnsi(p.CurrentPath+"/"+p.Selected, h, w, "up")
+						fmt.Fprintf(os.Stdout, "\n"+escapes.CursorPos(0, h))
+
+						if w <= 80 {
+							theme.ShowArt(f80)
+						} else {
+							theme.ShowArt(f132)
+						}
+
+						StatusBar(h)
+					}
+
+					if key == keyboard.KeyArrowDown {
+						ScrollAnsi(p.CurrentPath+"/"+p.Selected, h, w, "down")
+						fmt.Fprintf(os.Stdout, "\n"+escapes.CursorPos(0, h))
+
+						if w <= 80 {
+							theme.ShowArt(f80)
+						} else {
+							theme.ShowArt(f132)
+						}
+						StatusBar(h)
 					}
 				}
 
@@ -215,7 +271,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 			}
 		}
 
-		if string(char) == "q" || string(char) == "Q" {
+		if string(char) == "q" || string(char) == "Q" || key == keyboard.KeyEsc {
 			fmt.Println(theme.Clear)
 			fmt.Println(theme.Home)
 
@@ -242,9 +298,9 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 					theme.ShowArt(l132)
 				}
 
-				// cmd := exec.Command("reset") //Linux only
-				// cmd.Stdout = os.Stdout
-				// cmd.Run()
+				cmd := exec.Command("reset") //Linux only
+				cmd.Stdout = os.Stdout
+				cmd.Run()
 				os.Exit(0)
 
 			} else {
@@ -313,3 +369,175 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 		}
 	}
 }
+
+// WriteAnsi(string) dislays a full CP437 ansi art file
+func WriteAnsi(selected string, h int, w int) {
+
+	file, err := os.Open(selected)
+	if err != nil {
+		//handle error
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+	s := bufio.NewScanner(file)
+
+	fmt.Fprintf(os.Stdout, escapes.EraseScreen)
+	fmt.Println(escapes.CursorPos(0, 0))
+
+	for s.Scan() {
+		read_line := s.Text()
+		// trim the text if it's after a SAUCE RECORD
+		trimmed := theme.TrimStringFromSauce(read_line)
+		var b bytes.Buffer
+		for {
+			// add delay between each line to throttle speed
+			fmt.Println(escapes.CursorPos(0, rowCount))
+			time.Sleep(time.Duration(30) * time.Millisecond)
+			// fmt.Fprintf(os.Stdout, escapes.CursorNextLine)
+			b.Write([]byte(trimmed + "\r"))
+			b.WriteTo(os.Stdout)
+			rowCount++
+			break
+		}
+	}
+	currLoc = rowCount
+	return
+}
+
+// WriteAnsi(string) dislays a full CP437 ansi art file
+func ScrollAnsi(selected string, h int, w int, scroll string) {
+
+	row := 0
+
+	if scroll == "up" {
+		if currLoc > 0+h {
+			currLoc--
+
+		}
+	}
+
+	if scroll == "down" {
+		if currLoc < rowCount {
+			currLoc++
+		}
+
+	}
+
+	fmt.Fprintf(os.Stdout, escapes.EraseScreen)
+	fmt.Println(escapes.CursorPos(0, 0))
+
+	f, _ := os.Open(selected)
+	// Create new Scanner
+	scanner := bufio.NewScanner(f)
+
+	// Use Scan
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmed := theme.TrimStringFromSauce(line)
+		row++
+		if row <= currLoc && row >= currLoc-h {
+			fmt.Println(trimmed)
+
+		}
+	}
+}
+
+func StatusBar(h int) {
+
+	fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+
+	incr := float64(currLoc) / float64(rowCount)
+	r := math.Floor(incr*100) / 100
+	fmt.Fprintf(os.Stdout, theme.BgCyan+theme.BrightYellow+"[          ]"+theme.Reset)
+
+	switch {
+	case r <= 1 && r > .9:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .95 && r > .89:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .9 && r > .8:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .8 && r > .7:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .7 && r > .6:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .6 && r > .5:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .5 && r > .4:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .4 && r > .3:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .3 && r > .2:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .2 && r > .1:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
+		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	}
+}
+
+// fmt.Fprintf(os.Stdout, theme.BgCyan+theme.BrightYellow+"%v "+theme.BrightCyan+"/ "+theme.BrightYellow+"%v"+theme.Reset, currLoc, rowCount)

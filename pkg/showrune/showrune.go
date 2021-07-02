@@ -8,4 +8,5 @@ var (
 	ArrowDownFat = string([]rune{'\u001F'})
 	ArrowRight   = string([]rune{'\u0010'})
 	ArrowLeft    = string([]rune{'\u0011'})
+	Block        = string([]rune{'\u0219'})
 )
