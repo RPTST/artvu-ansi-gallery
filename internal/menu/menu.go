@@ -43,8 +43,38 @@ var l80 string
 //go:embed logoff.132.ans
 var l132 string
 
-//go:embed block.ans
-var block string
+//go:embed bar.ans
+var bar string
+
+//go:embed bar10.ans
+var bar10 string
+
+//go:embed bar20.ans
+var bar20 string
+
+//go:embed bar30.ans
+var bar30 string
+
+//go:embed bar40.ans
+var bar40 string
+
+//go:embed bar50.ans
+var bar50 string
+
+//go:embed bar60.ans
+var bar60 string
+
+//go:embed bar70.ans
+var bar70 string
+
+//go:embed bar80.ans
+var bar80 string
+
+//go:embed bar90.ans
+var bar90 string
+
+//go:embed bar100.ans
+var bar100 string
 
 type CurrentFile struct {
 	CurrentDir    int
@@ -105,10 +135,39 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 
 		char, key, err := keyboard.GetKey()
 		if err != nil {
-
 		}
 
-		if key == keyboard.KeyEnter {
+		if key == keyboard.KeyArrowLeft {
+
+			if p.CurrentPath != rootDir {
+
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo("../", rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+
+				fmt.Println(theme.Clear)
+				fmt.Println(theme.Home)
+
+				if p1.Count <= 1 {
+					p.CurrentDir = 1
+					p.VisibleDirIdx = 0
+				} else {
+					p.CurrentDir = 1
+					p.VisibleDirIdx = 0
+				}
+
+				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
+				theme.ShowFooter(w, h, p.ViewAnsi)
+
+				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+
+				if debug {
+					debugr.DebugInf(p.CurrentDir, h, p.Selected, p.Action, p.CurrentPath, p1.Count, navOn)
+				}
+			}
+		}
+
+		if key == keyboard.KeyEnter || key == keyboard.KeyArrowRight {
 
 			p.VisibleDirIdx = 0
 			switch p.Action {
@@ -127,7 +186,6 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				} else {
 					p.CurrentDir = 1
 					p.VisibleDirIdx = 0
-
 				}
 
 				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
@@ -163,20 +221,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				}
 
 				fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
-				fmt.Fprintf(os.Stdout, theme.BgCyan+theme.BrightYellow+"[          ]"+theme.Reset)
-
-				fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-				theme.ShowArt(block)
-
+				theme.ShowArt(bar100)
 				fmt.Fprintf(os.Stdout, theme.Reset)
 
 				for {
@@ -453,91 +498,44 @@ func StatusBar(h int) {
 
 	switch {
 	case r <= 1 && r > .9:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		fmt.Fprintf(os.Stdout, theme.Reset)
-	case r <= .95 && r > .89:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar100)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	case r <= .9 && r > .8:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar90)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	case r <= .8 && r > .7:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar80)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	case r <= .7 && r > .6:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar70)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	case r <= .6 && r > .5:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar60)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	case r <= .5 && r > .4:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar50)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	case r <= .4 && r > .3:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar40)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	case r <= .3 && r > .2:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar30)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	case r <= .2 && r > .1:
-		fmt.Fprintf(os.Stdout, escapes.CursorPos(4, h))
-		theme.ShowArt(block)
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar20)
+		fmt.Fprintf(os.Stdout, theme.Reset)
+	case r <= .1:
+		fmt.Fprintf(os.Stdout, escapes.CursorPos(3, h))
+		theme.ShowArt(bar10)
 		fmt.Fprintf(os.Stdout, theme.Reset)
 	}
 }
-
-// fmt.Fprintf(os.Stdout, theme.BgCyan+theme.BrightYellow+"%v "+theme.BrightCyan+"/ "+theme.BrightYellow+"%v"+theme.Reset, currLoc, rowCount)
