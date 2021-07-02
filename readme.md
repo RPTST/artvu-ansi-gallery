@@ -1,5 +1,11 @@
 # Artvu Ansi Gallery
-ANSI art viewer for old-skool, and new-school, BBSs (like Mystic, Talisman, WWiV, ENiGMA 1/2, etc.). Supports 80 and 132 terminal widths. Best run as an stdout-based (linux native) door program - refer to the example start.sh file.
+ANSI art viewer for old-skool, and new-school, BBSs (like Mystic, Talisman, WWiV, ENiGMA 1/2, etc.). Supports 80 and 132 terminal widths. 
+
+![image](images/av-1.png)
+![image](images/av-2.png)
+
+## Notes ##
+Best run as an stdout-based (linux native) door program - refer to the example start.sh file.
 
 Required command-line flag is "-root" followed by the path to the folder containing Ansi art:
 
@@ -22,7 +28,7 @@ Build ArtVu like any Go program. Or, use a pre-built binary from the /release fo
 
 - If the art file contains cursor codes/animation, it won't display properly.
 
-- There's some degree of flicker when using the lighbar, see TO-DO below...
+- There's some degree of flicker when using the lighbar.
 
 - if file_id.diz is wider than 45 characters (per spec), it'll break the display 
 
