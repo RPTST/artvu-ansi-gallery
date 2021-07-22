@@ -1,6 +1,7 @@
 package ansi
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -366,6 +367,8 @@ func (sCodes *SGR) ToEsc(pCodePrev *SGR) string {
 
 func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool) {
 
+	var artSlice []string
+
 	/*
 		NOTE: CAN'T ESC[nC COMPRESS BECAUSE OF TERMINAL BACKGROUND COLOR
 	*/
@@ -385,7 +388,7 @@ func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool) {
 			cp437 = transform.NewReader(cp437, charmap.CodePage437.NewEncoder()) // encode bytes to CP437
 			encBytes, _ := ioutil.ReadAll(cp437)
 			encB := string(encBytes)
-			fmt.Fprint(iWri, encB)
+			artSlice = append(artSlice, encB)
 			return false
 		}
 
@@ -400,7 +403,7 @@ func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool) {
 				cp437 = transform.NewReader(cp437, charmap.CodePage437.NewEncoder()) // encode bytes to CP437
 				encBytes, _ := ioutil.ReadAll(cp437)
 				encB := string(encBytes)
-				fmt.Fprint(iWri, encB)
+				artSlice = append(artSlice, encB)
 				return false
 			}
 
@@ -409,19 +412,12 @@ func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool) {
 	}
 
 	// RESET BRUSH
-	fmt.Fprint(iWri, STR_CLEAR, "\n")
+	artSlice = append(artSlice, STR_CLEAR, "\n")
 
-	for nRow, sRow := range gr.grid {
-
-		time.Sleep(20 * time.Millisecond)
+	for _, sRow := range gr.grid {
 
 		brushPrev := SGR{}
 		nBytes = len(STR_CLEAR) + 1
-
-		if bDebug {
-			fmt.Fprintf(iWri, "%5d: ", nRow+1)
-
-		}
 
 		for _, cell := range sRow {
 
@@ -447,15 +443,22 @@ func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool) {
 			}
 		}
 
-		fmt.Fprint(iWri, STR_CLEAR)
+		artSlice = append(artSlice, STR_CLEAR)
 
 		if bDebug {
-			fmt.Fprint(iWri, "|")
+			artSlice = append(artSlice, "|")
 		}
 
-		fmt.Fprint(iWri, "\n")
-		// time.Sleep(70 * time.Millisecond)
+		artSlice = append(artSlice, "\n")
 
+	}
+
+	artString := strings.Join(artSlice, "")
+
+	scanner := bufio.NewScanner(strings.NewReader(artString))
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+		time.Sleep(40 * time.Millisecond)
 	}
 }
 

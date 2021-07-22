@@ -102,7 +102,7 @@ func Ansiart2utf8(file string, w int) {
 	// COMMAND PARAMETERS
 	puiWidth := w
 	pszInput := file
-	pbDebug := true
+	pbDebug := false
 	pnRowBytes := 0
 
 	// DEBUG LOGGING
@@ -138,7 +138,6 @@ func Ansiart2utf8(file string, w int) {
 
 	// BUFFER OUTPUT
 	pWriter := bufio.NewWriter(os.Stdout)
-
 	curCode := ansi.ECode{}
 	curPos := ansi.NewPos()
 	curSaved := ansi.NewPos()
