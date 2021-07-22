@@ -10,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/robbiew/artvu-ansi-gallery/internal/ansi"
@@ -59,7 +60,7 @@ const (
 	CHR_LF     = 0x0A
 )
 
-func Ansiart2utf8(file string, w int) {
+func Ansiart2utf8(file string, artw int, w int, h int, artW int) {
 	var (
 		oErr  error
 		pFile *os.File
@@ -100,10 +101,12 @@ func Ansiart2utf8(file string, w int) {
 	pFile = nil
 
 	// COMMAND PARAMETERS
-	puiWidth := w
+	puiWidth := artw
 	pszInput := file
 	pbDebug := false
 	pnRowBytes := 0
+	// termWidth := w
+	// termHeight := h
 
 	// DEBUG LOGGING
 	pLogDebug := log.New(os.Stdout, "", 0)
@@ -294,8 +297,7 @@ func Ansiart2utf8(file string, w int) {
 		}
 	}
 
-	pGrid.Print(pWriter, int(pnRowBytes), pbDebug)
-
+	pGrid.Print(pWriter, int(pnRowBytes), pbDebug, w, artW)
 	pWriter.WriteByte(CHR_LF)
 	pWriter.Flush()
 
@@ -303,40 +305,28 @@ func Ansiart2utf8(file string, w int) {
 
 }
 
-// func RenderArt(file string, h int, w int) int {
+// for art 80 cols wide or less
+func RenderArt(file string, h int, w int) int {
 
-// 	rowCount := 0
+	rowCount := 0
 
-// 	content, err := ioutil.ReadFile(file)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// 	noSauce := TrimStringFromSauce(string(content)) // strip off the SAUCE metadata
-// 	s := bufio.NewScanner(strings.NewReader(string(noSauce)))
+	noSauce := TrimStringFromSauce(string(content)) // strip off the SAUCE metadata
+	s := bufio.NewScanner(strings.NewReader(string(noSauce)))
 
-// 	for s.Scan() {
-// 		var d io.Reader = strings.NewReader(s.Text())                    // each line as string
-// 		utf8 := transform.NewReader(d, charmap.CodePage437.NewDecoder()) // decode from CP437 to UTF-8
-// 		decBytes, _ := ioutil.ReadAll(utf8)
-// 		decS := string(decBytes)
+	for s.Scan() {
 
-// 		f := wrap.NewWriter(80) // reflow package from github.com/muesli/reflow
-// 		f.PreserveSpace = true
-// 		f.Newline = []rune{'\n'}
-// 		f.KeepNewlines = true
-// 		f.Write([]byte(decS))
+		fmt.Println(s.Text())
+		time.Sleep(70 * time.Millisecond) // wait for a bit between lines
+		rowCount++
+	}
 
-// 		var cp437 io.Reader = strings.NewReader(f.String())
-// 		cp437 = transform.NewReader(cp437, charmap.CodePage437.NewEncoder()) // encode bytes to CP437
-// 		encBytes, _ := ioutil.ReadAll(cp437)
-// 		encB := string(encBytes)
-// 		fmt.Println(encB)
-// 		time.Sleep(70 * time.Millisecond) // wait for a bit between lines
-// 	}
-
-// 	return rowCount
-// }
+	return rowCount
+}
 
 func ScrollAnsi(selected string, h int, w int, currLoc int) {
 

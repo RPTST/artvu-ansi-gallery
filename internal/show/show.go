@@ -27,7 +27,7 @@ type SauceData struct {
 	Tinfo2 string
 }
 
-func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir int, rootDir string, headerH int, h int, w int, currentPath string) (int, string, int, bool) {
+func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir int, rootDir string, headerH int, h int, w int, currentPath string) (int, string, int, bool, int) {
 
 	var action int      // directory, file or up
 	var selected string // file name of active item
@@ -329,7 +329,15 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 
 	fmt.Fprintf(os.Stdout, theme.Reset)
 
-	return currentDir, selected, action, viewAnsi
+	var artWidth int
+
+	if s.Tinfo1 != "" {
+		artWidth, _ = strconv.Atoi(s.Tinfo1)
+	} else {
+		artWidth = 0
+	}
+
+	return currentDir, selected, action, viewAnsi, artWidth
 }
 
 func hasExts(path string, exts []string) bool {

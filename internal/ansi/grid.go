@@ -86,7 +86,7 @@ func (gr *Grid) touch(nRow GridDim) GridRow {
 
 			sGrid[i] = make([]GridCell, gr.width)
 
-			for j, _ := range sGrid[i] {
+			for j := range sGrid[i] {
 
 				sGrid[i][j].Brush.Reset()
 			}
@@ -365,7 +365,7 @@ func (sCodes *SGR) ToEsc(pCodePrev *SGR) string {
 	return ""
 }
 
-func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool) {
+func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool, w int, artWidth int) {
 
 	var artSlice []string
 
@@ -412,7 +412,9 @@ func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool) {
 	}
 
 	// RESET BRUSH
-	artSlice = append(artSlice, STR_CLEAR, "\n")
+	if w > 80 {
+		artSlice = append(artSlice, STR_CLEAR, "\n")
+	}
 
 	for _, sRow := range gr.grid {
 
@@ -454,11 +456,11 @@ func (gr *Grid) Print(iWri io.Writer, nRowBytes int, bDebug bool) {
 	}
 
 	artString := strings.Join(artSlice, "")
-
 	scanner := bufio.NewScanner(strings.NewReader(artString))
+
 	for scanner.Scan() {
 		fmt.Println(scanner.Text())
-		time.Sleep(40 * time.Millisecond)
+		time.Sleep(90 * time.Millisecond)
 	}
 }
 
@@ -466,7 +468,7 @@ func (gr *Grid) ResetChars(rChar rune) {
 
 	for _, sRow := range gr.grid {
 
-		for ixCol, _ := range sRow {
+		for ixCol := range sRow {
 
 			sRow[ixCol].Char = rChar
 		}
