@@ -25,6 +25,7 @@ type SauceData struct {
 	Date   string
 	Tinfo1 string
 	Tinfo2 string
+	Flags  []byte
 }
 
 func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir int, rootDir string, headerH int, h int, w int, currentPath string) (int, string, int, bool, int) {
@@ -135,6 +136,7 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 						s.Author = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Author)[:]))
 						s.Tinfo1 = strings.TrimSpace(string(fmt.Sprintf("%s", strconv.Itoa(int(record.Sauceinf.Tinfo1))[:])))
 						s.Tinfo2 = strings.TrimSpace(string(fmt.Sprintf("%s", strconv.Itoa(int(record.Sauceinf.Tinfo2))[:])))
+						s.Flags = []byte(strings.TrimSpace(string(fmt.Sprintf("%v", record.Sauceinf.Flags)[:])))
 
 						sInt, err := strconv.Atoi(s.Tinfo1)
 						if err != nil {
@@ -153,6 +155,7 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 
 						fmt.Println(up + apos + theme.BgCyan + textutil.PadLeft(">", " ", wAuthor))
 						fmt.Println(up + apos + theme.White + " " + textutil.TruncateText(s.Author, wAuthor-3))
+						fmt.Println(s.Flags)
 
 						if len(strings.TrimSpace(s.Tinfo1)) > 1 {
 
