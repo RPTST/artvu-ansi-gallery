@@ -60,7 +60,7 @@ const (
 	CHR_LF     = 0x0A
 )
 
-func Ansiart2utf8(file string, artw int, w int, h int, artW int) {
+func Ansiart2utf8(file string, artw int, w int, h int) {
 	var (
 		oErr  error
 		pFile *os.File
@@ -297,7 +297,7 @@ func Ansiart2utf8(file string, artw int, w int, h int, artW int) {
 		}
 	}
 
-	pGrid.Print(pWriter, int(pnRowBytes), pbDebug, w, artW)
+	pGrid.Print(pWriter, int(pnRowBytes), pbDebug, w, artw)
 	pWriter.WriteByte(CHR_LF)
 	pWriter.Flush()
 
@@ -326,6 +326,19 @@ func RenderArt(file string, h int, w int) int {
 	}
 
 	return rowCount
+}
+
+func FontControl(file string) {
+
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := bufio.NewScanner(strings.NewReader(string(content)))
+
+	fmt.Println(s)
+
 }
 
 func ScrollAnsi(selected string, h int, w int, currLoc int) {

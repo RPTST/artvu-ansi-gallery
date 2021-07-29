@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 
 	"github.com/eiannone/keyboard"
 	"github.com/robbiew/artvu-ansi-gallery/internal/art"
@@ -12,6 +13,15 @@ import (
 	"github.com/robbiew/artvu-ansi-gallery/internal/show"
 	"github.com/robbiew/artvu-ansi-gallery/internal/theme"
 	escapes "github.com/snugfox/ansi-escapes"
+)
+
+// ANSI codes for fonts
+const (
+	microKnight = "\u001b[0;39 D"
+	topaz       = "\u001b[0;40 D"
+	p0T         = "\u001b[0;37 D"
+	mOsOul      = "\u001b[0;37 D"
+	ibm         = "\u001b[0;0 D"
 )
 
 var (
@@ -45,6 +55,7 @@ type CurrentFile struct {
 	CurrentPath   string
 	ViewAnsi      bool
 	ArtWidth      int
+	Font          string
 }
 
 type DirsFiles struct {
@@ -71,12 +82,13 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 	p.CurrentPath = rootDir
 	p.ViewAnsi = true
 	p.ArtWidth = 80
+	p.Font = "UNKNOWN"
 
 	theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
 	theme.ShowFooter(w, h, p.ViewAnsi)
 
 	p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(p.Selected, rootDir, p.CurrentPath)
-	p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+	p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 	if err := keyboard.Open(); err != nil {
 		panic(err)
@@ -97,7 +109,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 			if p.CurrentPath != rootDir {
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo("../", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 				fmt.Println(theme.Clear)
 				fmt.Println(theme.Home)
@@ -114,7 +126,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				theme.ShowFooter(w, h, p.ViewAnsi)
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 			}
 		}
 
@@ -126,7 +138,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 			case 0: // open directory
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(p.Selected, rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 				fmt.Println(theme.Clear)
 				fmt.Println(theme.Home)
@@ -143,17 +155,35 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				theme.ShowFooter(w, h, p.ViewAnsi)
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 			case 1: // view ansi
 
 				fmt.Println(theme.Clear)
 				fmt.Println(theme.Home)
 
+				// check if there's an AMIGA font in SAUCE
+				// TODO: add support for other fonts
+				topazFont := regexp.MustCompile(`^Amiga`)
+				ibmFont := regexp.MustCompile(`^IBM`)
+
+				s := p.Font
+				switch {
+				case topazFont.MatchString(s):
+					fmt.Fprintf(os.Stdout, topaz)
+				case ibmFont.MatchString(s):
+					fmt.Fprintf(os.Stdout, ibm)
+				default:
+					// assume it's a regular IBM font
+					fmt.Fprintf(os.Stdout, ibm)
+				}
+
 				if w > 80 {
-					art.Ansiart2utf8(p.CurrentPath+"/"+p.Selected, 80, w, h, p.ArtWidth)
+					art.Ansiart2utf8(p.CurrentPath+"/"+p.Selected, p.ArtWidth, w, h)
+					fmt.Fprintf(os.Stdout, ibm)
 				} else {
 					art.RenderArt(p.CurrentPath+"/"+p.Selected, h, w)
+					fmt.Fprintf(os.Stdout, ibm)
 				}
 
 				fmt.Println(" ")
@@ -241,13 +271,13 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 				theme.ShowFooter(w, h, p.ViewAnsi)
 
 			case 2: // up one dir
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo("../", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 				fmt.Println(theme.Clear)
 				fmt.Println(theme.Home)
@@ -255,7 +285,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 				theme.ShowFooter(w, h, p.ViewAnsi)
 
@@ -302,7 +332,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 				theme.ShowFooter(w, h, p.ViewAnsi)
 
@@ -324,7 +354,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 				theme.ShowFooter(w, h, p.ViewAnsi)
 
 			}
@@ -344,7 +374,7 @@ func MenuAction(rootDir string, h int, w int, headerH int) {
 				theme.ShowHeader(w, headerH, p.CurrentPath, rootDir)
 
 				p1.DirSlices, p1.FilesSlices, p.CurrentPath, p1.Count = file.GetDirInfo(".", rootDir, p.CurrentPath)
-				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
+				p.CurrentDir, p.Selected, p.Action, p.ViewAnsi, p.ArtWidth, p.Font = show.Gallery(p1.DirSlices, p1.FilesSlices, p.VisibleDirIdx, p.CurrentDir, rootDir, headerH, h, w, p.CurrentPath)
 
 				theme.ShowFooter(w, h, p.ViewAnsi)
 

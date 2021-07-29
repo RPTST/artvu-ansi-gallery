@@ -25,10 +25,11 @@ type SauceData struct {
 	Date   string
 	Tinfo1 string
 	Tinfo2 string
-	Flags  []byte
+	Flags  byte
+	Font   string
 }
 
-func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir int, rootDir string, headerH int, h int, w int, currentPath string) (int, string, int, bool, int) {
+func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir int, rootDir string, headerH int, h int, w int, currentPath string) (int, string, int, bool, int, string) {
 
 	var action int      // directory, file or up
 	var selected string // file name of active item
@@ -136,7 +137,8 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 						s.Author = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Author)[:]))
 						s.Tinfo1 = strings.TrimSpace(string(fmt.Sprintf("%s", strconv.Itoa(int(record.Sauceinf.Tinfo1))[:])))
 						s.Tinfo2 = strings.TrimSpace(string(fmt.Sprintf("%s", strconv.Itoa(int(record.Sauceinf.Tinfo2))[:])))
-						s.Flags = []byte(strings.TrimSpace(string(fmt.Sprintf("%v", record.Sauceinf.Flags)[:])))
+						s.Flags = record.Sauceinf.Flags
+						s.Font = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Filler)[:]))
 
 						sInt, err := strconv.Atoi(s.Tinfo1)
 						if err != nil {
@@ -155,12 +157,108 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 
 						fmt.Println(up + apos + theme.BgCyan + textutil.PadLeft(">", " ", wAuthor))
 						fmt.Println(up + apos + theme.White + " " + textutil.TruncateText(s.Author, wAuthor-3))
-						fmt.Println(s.Flags)
 
 						if len(strings.TrimSpace(s.Tinfo1)) > 1 {
 
 							fmt.Println(up + spos + theme.BgCyan + textutil.PadLeft(">", " ", wSize+1))
 							fmt.Println(up + spos + widthColor + " " + textutil.TruncateText(s.Tinfo1+"x"+s.Tinfo2, wSize))
+						}
+
+						if w > 80 {
+							savePos := "\033[s"
+							restPos := "\033[u"
+
+							fmt.Fprintf(os.Stdout, theme.Reset)
+
+							if len(s.Group) > 1 {
+								fmt.Fprintf(os.Stdout, savePos)
+								row := headerH + 1
+								loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+								clear := "\033[0K"
+								fmt.Fprintf(os.Stdout, loc+clear)
+
+								fmt.Fprintf(os.Stdout, "Group: "+s.Group)
+								fmt.Fprintf(os.Stdout, restPos)
+							} else {
+								fmt.Fprintf(os.Stdout, savePos)
+								row := headerH + 1
+								loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+								clear := "\033[0K"
+								fmt.Fprintf(os.Stdout, loc+clear)
+								fmt.Fprintf(os.Stdout, "Group: unknown")
+								fmt.Fprintf(os.Stdout, restPos)
+							}
+
+							if len(s.Title) > 1 {
+								fmt.Fprintf(os.Stdout, savePos)
+								row := headerH + 2
+								loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+								clear := "\033[0K"
+								fmt.Fprintf(os.Stdout, loc+clear)
+
+								fmt.Fprintf(os.Stdout, "Title: "+s.Title)
+								fmt.Fprintf(os.Stdout, restPos)
+							} else {
+								fmt.Fprintf(os.Stdout, savePos)
+								row := headerH + 2
+								loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+								clear := "\033[0K"
+								fmt.Fprintf(os.Stdout, loc+clear)
+								fmt.Fprintf(os.Stdout, "Title: unknown")
+								fmt.Fprintf(os.Stdout, restPos)
+							}
+
+							if s.Flags != 0 {
+								fmt.Fprintf(os.Stdout, savePos)
+								row := headerH + 3
+								loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+								clear := "\033[0K"
+								fmt.Fprintf(os.Stdout, loc+clear)
+
+								var y string
+
+								if s.Flags&(1) != 0 {
+									y = "iCE"
+								} else {
+									y = "Standard"
+								}
+								fmt.Fprintf(os.Stdout, "Color: %v", y)
+
+								// fmt.Fprintf(os.Stdout, "S: %08b C: %v", s.Flags&(1), y)
+								// fmt.Fprintf(os.Stdout, " F: %08b", s.Flags)
+
+								fmt.Fprintf(os.Stdout, restPos)
+
+							} else {
+								fmt.Fprintf(os.Stdout, savePos)
+								row := headerH + 3
+								loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+								clear := "\033[0K"
+								fmt.Fprintf(os.Stdout, loc+clear)
+								fmt.Fprintf(os.Stdout, "Flags: unknown")
+								fmt.Fprintf(os.Stdout, restPos)
+							}
+
+							if s.Font != "0" {
+								fmt.Fprintf(os.Stdout, savePos)
+								row := headerH + 4
+								loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+								clear := "\033[0K"
+								fmt.Fprintf(os.Stdout, loc+clear)
+
+								fmt.Fprintf(os.Stdout, " Font: "+s.Font)
+								fmt.Fprintf(os.Stdout, restPos)
+
+							} else {
+								fmt.Fprintf(os.Stdout, savePos)
+								row := headerH + 4
+								loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+								clear := "\033[0K"
+								fmt.Fprintf(os.Stdout, loc+clear)
+								fmt.Fprintf(os.Stdout, " Font: unknown")
+								fmt.Fprintf(os.Stdout, restPos)
+							}
+
 						}
 
 					} else {
@@ -230,6 +328,7 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 						s.Group = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Group)[:]))
 						s.Title = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Title)[:]))
 						s.Date = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Date)[:]))
+						// s.Font = strings.TrimSpace(string(fmt.Sprintf("%s", record.Sauceinf.Filler)[:]))
 
 						sInt, err := strconv.Atoi(s.Tinfo1)
 						if err != nil {
@@ -253,37 +352,37 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 							fmt.Println(up + spos + widthColor + " " + textutil.TruncateText(s.Tinfo1+"x"+s.Tinfo2, wSize))
 						}
 
-						if w > 80 { // show SUACE preview info panel
+						// if w > 80 { // show SUACE preview info panel
 
-							// savePos := "\033[s"
-							// restPos := "\033[u"
+						// savePos := "\033[s"
+						// restPos := "\033[u"
 
-							// fmt.Fprintf(os.Stdout, savePos)
-							// showInfo(86, headerH, h, s.Group, s.Title, s.Date)
-							// fmt.Fprintf(os.Stdout, restPos)
+						// fmt.Fprintf(os.Stdout, savePos)
+						// showInfo(86, headerH, h, s.Group, s.Title, s.Date)
+						// fmt.Fprintf(os.Stdout, restPos)
 
-							savePos := "\033[s"
-							restPos := "\033[u"
+						// savePos := "\033[s"
+						// restPos := "\033[u"
 
-							fmt.Fprintf(os.Stdout, savePos)
+						// fmt.Fprintf(os.Stdout, savePos)
 
-							row := headerH + 1
-							loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+						// row := headerH + 1
+						// loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
 
-							clear := "\033[0K"
+						// clear := "\033[0K"
 
-							fmt.Fprintf(os.Stdout, loc+clear)
-							fmt.Println("GROUP: <unknown>")
+						// fmt.Fprintf(os.Stdout, loc+clear)
+						// fmt.Println("GROUP: <unknown>")
 
-							fmt.Fprintf(os.Stdout, "\033["+fmt.Sprint(row+1)+";"+fmt.Sprint(86)+"f"+clear)
-							fmt.Println("TITLE: <unknown>")
+						// fmt.Fprintf(os.Stdout, "\033["+fmt.Sprint(row+1)+";"+fmt.Sprint(86)+"f"+clear)
+						// fmt.Println("TITLE: <unknown>")
 
-							fmt.Fprintf(os.Stdout, "\033["+fmt.Sprint(row+2)+";"+fmt.Sprint(86)+"f"+clear)
-							fmt.Println("PUBLISHED: <unknown>")
+						// fmt.Fprintf(os.Stdout, "\033["+fmt.Sprint(row+2)+";"+fmt.Sprint(86)+"f"+clear)
+						// fmt.Println("PUBLISHED: <unknown>")
 
-							fmt.Fprintf(os.Stdout, restPos)
+						// fmt.Fprintf(os.Stdout, restPos)
 
-						}
+						// }
 					} else {
 
 						fmt.Println(up + apos + textutil.PadLeft(">", " ", wAuthor))
@@ -295,35 +394,32 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 						fmt.Println(up + spos + textutil.PadLeft(">", " ", wSize+1))
 						fmt.Println(up + spos + " -")
 
-						if w > 80 {
+						// if w > 80 {
 
-							savePos := "\033[s"
-							restPos := "\033[u"
+						// 	savePos := "\033[s"
+						// 	restPos := "\033[u"
 
-							fmt.Fprintf(os.Stdout, savePos)
+						// 	fmt.Fprintf(os.Stdout, savePos)
 
-							row := headerH + 1
-							loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
+						// 	row := headerH + 1
+						// 	loc := "\033[" + fmt.Sprint(row) + ";" + fmt.Sprint(86) + "f"
 
-							clear := "\033[0K"
+						// 	clear := "\033[0K"
 
-							fmt.Fprintf(os.Stdout, loc+clear)
-							fmt.Println("GROUP: <unknown>")
+						// 	fmt.Fprintf(os.Stdout, loc+clear)
+						// 	fmt.Println("GROUP: <unknown>")
 
-							fmt.Fprintf(os.Stdout, "\033["+fmt.Sprint(row+1)+";"+fmt.Sprint(86)+"f"+clear)
-							fmt.Println("TITLE: <unknown>")
+						// 	fmt.Fprintf(os.Stdout, "\033["+fmt.Sprint(row+1)+";"+fmt.Sprint(86)+"f"+clear)
+						// 	fmt.Println("TITLE: <unknown>")
 
-							fmt.Fprintf(os.Stdout, "\033["+fmt.Sprint(row+2)+";"+fmt.Sprint(86)+"f"+clear)
-							fmt.Println("PUBLISHED: <unknown>")
+						// 	fmt.Fprintf(os.Stdout, "\033["+fmt.Sprint(row+2)+";"+fmt.Sprint(86)+"f"+clear)
+						// 	fmt.Println("PUBLISHED: <unknown>")
 
-							fmt.Fprintf(os.Stdout, restPos)
+						// 	fmt.Fprintf(os.Stdout, restPos)
 
-						}
-
+						// }
 					}
-
 				}
-
 				fmt.Fprintf(os.Stdout, theme.Reset)
 			}
 			break
@@ -340,7 +436,7 @@ func Gallery(dirList []string, fileList []string, visibleDirIdx int, currentDir 
 		artWidth = 0
 	}
 
-	return currentDir, selected, action, viewAnsi, artWidth
+	return currentDir, selected, action, viewAnsi, artWidth, s.Font
 }
 
 func hasExts(path string, exts []string) bool {
